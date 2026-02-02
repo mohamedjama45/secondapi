@@ -10,6 +10,15 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    # Set environment variables for Laravel DB connection
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: secondapi
+      DB_USERNAME: root
+      DB_PASSWORD: root
+
     services:
       mysql:
         image: mysql:8.0
@@ -25,11 +34,11 @@ jobs:
           --health-retries 3
 
     steps:
-      # 1. Checkout code
+      # 1️⃣ Checkout the code
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Setup PHP
+      # 2️⃣ Setup PHP with required extensions
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -37,24 +46,18 @@ jobs:
           extensions: mbstring, pdo, pdo_mysql, bcmath
           coverage: xdebug
 
-      # 3. Install Composer dependencies
+      # 3️⃣ Install Composer dependencies
       - name: Install composer dependencies
         run: composer install --no-interaction --prefer-dist
 
-      # 4. Setup .env and app key
+      # 4️⃣ Copy .env and generate app key
       - name: Copy .env
         run: cp .env.example .env
-
-      - name: Set DB credentials for CI
-        run: |
-          php artisan config:clear
-          php artisan config:cache
-          echo "DB_PASSWORD=root" >> .env
 
       - name: Generate app key
         run: php artisan key:generate
 
-      # 5. Wait for MySQL to be ready
+      # 5️⃣ Wait for MySQL to be ready
       - name: Wait for MySQL
         run: |
           for i in {1..10}; do
@@ -63,10 +66,10 @@ jobs:
             sleep 3
           done
 
-      # 6. Run migrations
+      # 6️⃣ Run migrations
       - name: Run migrations
         run: php artisan migrate --force
 
-      # 7. Run tests
+      # 7️⃣ Run tests
       - name: Run tests
-        run: php artisan test
+        run: php artisan test --no-interaction
